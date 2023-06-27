@@ -8,6 +8,14 @@ class Ingredient(models.Model):
     name = models.CharField(max_length=200)
     measurement_unit = models.CharField(max_length=50)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_name_unit'
+            )
+        ]
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=200)
@@ -31,8 +39,8 @@ class Recipe(models.Model):
         upload_to='media/',
         blank=True
     )
-    text = models.TextField()
-    cooking_time = models.PositiveIntegerField()
+    text = models.TextField(blank=True)
+    cooking_time = models.PositiveIntegerField(default=0)
 
 
 class RecipeTag(models.Model):
@@ -43,3 +51,45 @@ class RecipeTag(models.Model):
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    quantity = models.PositiveSmallIntegerField(default=0)
+
+
+class Subscribe(models.Model):
+    """Модель подписки"""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscriber'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscribing'
+    )
+
+
+class Favorite(models.Model):
+    """Модель избранного"""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favoriter'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorites'
+    )
+
+
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='cart'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='in_cart'
+    )
