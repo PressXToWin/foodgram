@@ -3,7 +3,8 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from recipes.models import (Recipe, Tag, Ingredient,
-                            Subscribe, Favorite, ShoppingCart)
+                            Subscribe, Favorite, ShoppingCart,
+                            RecipeIngredient)
 
 
 User = get_user_model()
@@ -61,6 +62,20 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# class RecipeIngredientSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = RecipeIngredient
+#         fields = '__all__'
+#
+#
+# class IngredientInRecipeSerializer(IngredientSerializer):
+#     quantity = serializers.SerializerMethodField()
+#
+#     def get_quantity(self, obj):
+#         ingredient = RecipeIngredient.objects.filter(recipe=self.context.get('request').recipe, ingredient=obj)
+#         return ingredient.quantity
+
+
 class SubscribeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscribe
@@ -83,6 +98,20 @@ class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     ingredients = IngredientSerializer(many=True)
     author = UsersSerializer()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
+
+    def get_is_favorited(self, obj):
+        if not self.context.get('request').user.is_authenticated:
+            return False
+        favorite = Favorite.objects.filter(user=self.context.get('request').user, recipe=obj)
+        return favorite.exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        if not self.context.get('request').user.is_authenticated:
+            return False
+        cart = ShoppingCart.objects.filter(user=self.context.get('request').user, recipe=obj)
+        return cart.exists()
 
     class Meta:
         model = Recipe

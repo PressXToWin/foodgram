@@ -31,8 +31,6 @@ class Recipe(models.Model):
         related_name='recipes'
     )
     ingredients = models.ManyToManyField(Ingredient, related_name='recipes', through='RecipeIngredient')
-    is_favorited = models.BooleanField(default=False)
-    is_in_shopping_cart = models.BooleanField(default=False)
     name = models.CharField(max_length=200)
     image = models.ImageField(
         verbose_name='Картинка',
