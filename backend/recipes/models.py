@@ -67,6 +67,14 @@ class Subscribe(models.Model):
         related_name='subscribing'
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_subscribe'
+            )
+        ]
+
 
 class Favorite(models.Model):
     """Модель избранного"""
@@ -81,6 +89,14 @@ class Favorite(models.Model):
         related_name='favorites'
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_favorite'
+            )
+        ]
+
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
@@ -93,3 +109,11 @@ class ShoppingCart(models.Model):
         on_delete=models.CASCADE,
         related_name='in_cart'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_shopping_cart'
+            )
+        ]
