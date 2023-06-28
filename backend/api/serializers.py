@@ -10,7 +10,7 @@ from recipes.models import (Recipe, Tag, Ingredient,
 User = get_user_model()
 
 
-class UsersSerializer(serializers.ModelSerializer):
+class UserMainSerializer(serializers.ModelSerializer):
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z',
         required=True,
@@ -26,10 +26,23 @@ class UsersSerializer(serializers.ModelSerializer):
         required=True,
         max_length=50
     )
-    last_name = serializers.EmailField(
+    last_name = serializers.CharField(
         required=True,
         max_length=50
     )
+
+    class Meta:
+        fields = (
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name'
+        )
+        model = User
+
+
+class UserViewSerializer(UserMainSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
@@ -38,9 +51,9 @@ class UsersSerializer(serializers.ModelSerializer):
         subscribe = Subscribe.objects.filter(user=self.context.get('request').user, author=obj)
         return subscribe.exists()
 
-
     class Meta:
         fields = (
+            'id',
             'username',
             'email',
             'first_name',
@@ -97,7 +110,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     ingredients = IngredientSerializer(many=True)
-    author = UsersSerializer()
+    author = UserViewSerializer()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 

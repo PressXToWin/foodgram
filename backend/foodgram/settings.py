@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'recipes',
     'users',
     'rest_framework',
+    'rest_framework.authtoken',
     'djoser',
 ]
 
@@ -133,12 +134,20 @@ REST_FRAMEWORK = {
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ],
 }
 
-
-SIMPLE_JWT = {
-   'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-   'AUTH_HEADER_TYPES': ('Bearer',),
+DJOSER = {
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserViewSerializer',
+        'user_create': 'api.serializers.UserMainSerializer',
+        'current_user': 'api.serializers.UserViewSerializer',
+    },
+    'LOGIN_FIELD': 'email'
 }
+
+# SIMPLE_JWT = {
+#    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+#    'AUTH_HEADER_TYPES': ('Bearer',),
+# }
