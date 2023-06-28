@@ -18,8 +18,8 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=200)
-    color = models.CharField(max_length=8)
+    name = models.CharField(max_length=200, unique=True)
+    color = models.CharField(max_length=8, unique=True)
     slug = models.SlugField(unique=True)
 
 
@@ -39,7 +39,7 @@ class Recipe(models.Model):
         upload_to='media/',
         blank=True
     )
-    text = models.TextField(blank=True)
+    text = models.TextField()
     cooking_time = models.PositiveIntegerField(default=0)
 
 

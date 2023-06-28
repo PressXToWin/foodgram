@@ -21,13 +21,30 @@ class UsersSerializer(serializers.ModelSerializer):
         max_length=254,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
+    first_name = serializers.CharField(
+        required=True,
+        max_length=50
+    )
+    last_name = serializers.EmailField(
+        required=True,
+        max_length=50
+    )
+    is_subscribed = serializers.SerializerMethodField()
+
+    def get_is_subscribed(self, obj):
+        if not self.context.get('request').user.is_authenticated or self.context.get('request').user == obj:
+            return False
+        subscribe = Subscribe.objects.filter(user=self.context.get('request').user, author=obj)
+        return subscribe.exists()
+
 
     class Meta:
         fields = (
             'username',
             'email',
             'first_name',
-            'last_name'
+            'last_name',
+            'is_subscribed'
         )
         model = User
 
