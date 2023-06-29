@@ -47,9 +47,9 @@ class RecipeTag(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    quantity = models.PositiveSmallIntegerField(default=0)
+    recipe = models.ForeignKey(Recipe, related_name='recipe', on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient, related_name='ingredient', on_delete=models.CASCADE)
+    amount = models.PositiveSmallIntegerField(default=0)
 
 
 class Subscribe(models.Model):

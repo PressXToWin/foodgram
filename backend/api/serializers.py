@@ -75,18 +75,17 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# class RecipeIngredientSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = RecipeIngredient
-#         fields = '__all__'
-#
-#
-# class IngredientInRecipeSerializer(IngredientSerializer):
-#     quantity = serializers.SerializerMethodField()
-#
-#     def get_quantity(self, obj):
-#         ingredient = RecipeIngredient.objects.filter(recipe=self.context.get('request').recipe, ingredient=obj)
-#         return ingredient.quantity
+class IngredientInRecipeSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(
+        source='ingredient.id')
+    name = serializers.ReadOnlyField(
+        source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit')
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
@@ -109,7 +108,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
-    ingredients = IngredientSerializer(many=True)
+    ingredients = IngredientInRecipeSerializer(many=True, source='recipe')
     author = UserViewSerializer()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
