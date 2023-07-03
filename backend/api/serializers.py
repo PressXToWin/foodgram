@@ -154,3 +154,6 @@ class RecipeCreateSerializer(RecipeMainSerializer):
         recipe.tags.set(tags)
         self.create_ingredients(ingredients, recipe)
         return recipe
+
+    def to_representation(self, instance):
+        return RecipeMainSerializer(instance, context={'request': self.context.get('request')}).data
