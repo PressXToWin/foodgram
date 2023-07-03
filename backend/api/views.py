@@ -1,5 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
+from rest_framework.permissions import SAFE_METHODS
 
 from recipes.models import (Recipe, Tag, Ingredient,
                             Subscribe, Favorite, ShoppingCart)
@@ -10,10 +11,9 @@ from api.serializers import (RecipeMainSerializer, TagSerializer, IngredientSeri
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeMainSerializer
 
     def get_serializer_class(self):
-        if self.request.method == 'GET':
+        if self.request.method in SAFE_METHODS:
             return RecipeMainSerializer
         return RecipeCreateSerializer
 

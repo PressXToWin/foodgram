@@ -155,5 +155,14 @@ class RecipeCreateSerializer(RecipeMainSerializer):
         self.create_ingredients(ingredients, recipe)
         return recipe
 
+    def update(self, instance, validated_data):
+        if 'tags' in validated_data:
+            instance.tags.clear()
+            instance.tags.set(validated_data.pop('tags'))
+        if 'ingredients' in validated_data:
+            instance.ingredients.clear()
+            self.create_ingredients(validated_data.pop('ingredients'), instance)
+        return super().update(instance, validated_data)
+
     def to_representation(self, instance):
         return RecipeMainSerializer(instance, context={'request': self.context.get('request')}).data
