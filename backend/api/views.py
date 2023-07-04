@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS
 
+from recipes.filters import RecipeFilter
 from recipes.models import (Recipe, Tag, Ingredient,
                             Subscribe, Favorite, ShoppingCart)
 
@@ -16,6 +17,8 @@ from api.serializers import (RecipeMainSerializer, TagSerializer, IngredientSeri
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
