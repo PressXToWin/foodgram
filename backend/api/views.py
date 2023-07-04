@@ -41,6 +41,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
             favorite = get_object_or_404(Favorite, user=request.user, recipe=recipe)
             favorite.delete()
 
+    @action(detail=True, methods=['POST', 'DELETE'])
+    def shopping_cart(self, request, pk):
+        recipe = Recipe.objects.get(pk=pk)
+        serializer = RecipeShortSerializer(recipe)
+        if request.method == 'POST':
+            try:
+                ShoppingCart.objects.create(user=request.user, recipe=recipe)
+                return Response(serializer.data)
+            except IntegrityError:
+                return Response(
+                    {'error': 'Рецепт уже добавлен в избранное'},
+                    status=status.HTTP_400_BAD_REQUEST)
+        elif request.method == 'DELETE':
+            cart = get_object_or_404(ShoppingCart, user=request.user, recipe=recipe)
+            cart.delete()
+
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
