@@ -166,3 +166,11 @@ class RecipeCreateSerializer(RecipeMainSerializer):
 
     def to_representation(self, instance):
         return RecipeMainSerializer(instance, context={'request': self.context.get('request')}).data
+
+
+class RecipeShortSerializer(serializers.ModelSerializer):
+    image = Base64ImageField(max_length=None)
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image',  'cooking_time')

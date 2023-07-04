@@ -1,12 +1,17 @@
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
+from django.db import IntegrityError
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS
 
 from recipes.models import (Recipe, Tag, Ingredient,
                             Subscribe, Favorite, ShoppingCart)
 
 from api.serializers import (RecipeMainSerializer, TagSerializer, IngredientSerializer,
-                             SubscribeSerializer, FavoriteSerializer, ShoppingCartSerializer, RecipeCreateSerializer)
+                             SubscribeSerializer, FavoriteSerializer, ShoppingCartSerializer, RecipeCreateSerializer,
+                             RecipeShortSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -19,6 +24,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    @action(detail=True, methods=['POST', 'DELETE'])
+    def favorite(self, request, pk):
+        recipe = Recipe.objects.get(pk=pk)
+        serializer = RecipeShortSerializer(recipe)
+        if request.method == 'POST':
+            try:
+                Favorite.objects.create(user=request.user, recipe=recipe)
+                return Response(serializer.data)
+            except IntegrityError:
+                return Response(
+                    {'error': 'Рецепт уже добавлен в избранное'},
+                    status=status.HTTP_400_BAD_REQUEST)
+        elif request.method == 'DELETE':
+            favorite = get_object_or_404(Favorite, user=request.user, recipe=recipe)
+            favorite.delete()
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -34,11 +55,6 @@ class IngredientViewSet(viewsets.ModelViewSet):
 class SubscribeViewSet(viewsets.ModelViewSet):
     queryset = Subscribe.objects.all()
     serializer_class = SubscribeSerializer
-
-
-class FavoriteViewSet(viewsets.ModelViewSet):
-    queryset = Favorite.objects.all()
-    serializer_class = FavoriteSerializer
 
 
 class ShoppingCartViewSet(viewsets.ModelViewSet):
