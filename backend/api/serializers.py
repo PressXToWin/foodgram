@@ -1,12 +1,10 @@
 from django.contrib.auth import get_user_model
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from drf_extra_fields.fields import Base64ImageField
 
-from recipes.models import (Recipe, Tag, Ingredient,
-                            Subscribe, Favorite, ShoppingCart,
-                            RecipeIngredient)
-
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Subscribe, Tag)
 
 User = get_user_model()
 
@@ -91,18 +89,6 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 class SubscribeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscribe
-        fields = '__all__'
-
-
-class FavoriteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Favorite
-        fields = '__all__'
-
-
-class ShoppingCartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ShoppingCart
         fields = '__all__'
 
 

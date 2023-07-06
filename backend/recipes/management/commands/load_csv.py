@@ -1,10 +1,9 @@
 from csv import reader
 
 from django.core.management import BaseCommand
+from django.db.utils import IntegrityError
 
 from recipes.models import Ingredient
-
-from django.db.utils import IntegrityError
 
 
 class Command(BaseCommand):
