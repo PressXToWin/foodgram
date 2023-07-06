@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly
 
 from recipes.filters import RecipeFilter
 from recipes.models import (Recipe, Tag, Ingredient,
@@ -16,11 +16,14 @@ from api.serializers import (RecipeMainSerializer, TagSerializer, IngredientSeri
                              SubscribeSerializer, FavoriteSerializer, ShoppingCartSerializer, RecipeCreateSerializer,
                              RecipeShortSerializer)
 
+from api.permissions import IsAuthorOrReadOnly
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
@@ -91,18 +94,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-
-
-class SubscribeViewSet(viewsets.ModelViewSet):
-    queryset = Subscribe.objects.all()
-    serializer_class = SubscribeSerializer
-
-
-class ShoppingCartViewSet(viewsets.ModelViewSet):
-    queryset = ShoppingCart.objects.all()
-    serializer_class = ShoppingCartSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = None
