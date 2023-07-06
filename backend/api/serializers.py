@@ -62,6 +62,34 @@ class UserViewSerializer(UserMainSerializer):
         model = User
 
 
+class UserSubscribeSerializer(UserViewSerializer):
+    recipes_count = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = (
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count'
+        )
+        # fields = '__all__'
+        model = User
+
+    def get_recipes_count(self, obj):
+        recipes_count = obj.recipes.count()
+        return recipes_count
+
+    def get_recipes(self, obj):
+        recipes = obj.recipes.all()
+        serializer = RecipeShortSerializer(recipes, many=True)
+        return serializer.data
+
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag

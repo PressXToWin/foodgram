@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -11,10 +12,13 @@ from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (IngredientSerializer,
                              RecipeCreateSerializer, RecipeMainSerializer,
                              RecipeShortSerializer,
-                             SubscribeSerializer, TagSerializer)
+                             SubscribeSerializer, TagSerializer, UserSubscribeSerializer, UserMainSerializer)
 from recipes.filters import RecipeFilter
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Subscribe, Tag)
+
+
+User = get_user_model()
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -86,6 +90,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK)
         response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
         return response
+
+    @action(detail=False, methods=['GET'])
+    def subscriptions(self, request):
+        user = request.user
+        subscriptions = User.objects.filter(subscribing__user=user)
+        serializer = UserSubscribeSerializer(subscriptions, many=True, context={'request': request})
+        return Response(serializer.data)
 
 
 
