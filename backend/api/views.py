@@ -3,9 +3,10 @@ from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 
 from api.permissions import IsAuthorOrReadOnly
@@ -50,6 +51,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         elif request.method == 'DELETE':
             favorite = get_object_or_404(Favorite, user=request.user, recipe=recipe)
             favorite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['POST', 'DELETE'])
     def shopping_cart(self, request, pk):
@@ -61,11 +63,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return Response(serializer.data)
             except IntegrityError:
                 return Response(
-                    {'error': 'Рецепт уже добавлен в избранное'},
+                    {'error': 'Рецепт уже добавлен в список покупок'},
                     status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
             cart = get_object_or_404(ShoppingCart, user=request.user, recipe=recipe)
             cart.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     def items_in_cart(self, user):
         ingredients = RecipeIngredient.objects.filter(recipe__in_cart__user=user)
@@ -91,12 +94,34 @@ class RecipeViewSet(viewsets.ModelViewSet):
         response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
         return response
 
+
+class ExtendedUserViewSet(UserViewSet):
+
     @action(detail=False, methods=['GET'])
     def subscriptions(self, request):
         user = request.user
         subscriptions = User.objects.filter(subscribing__user=user)
-        serializer = UserSubscribeSerializer(subscriptions, many=True, context={'request': request})
-        return Response(serializer.data)
+        pages = self.paginate_queryset(subscriptions)
+        serializer = UserSubscribeSerializer(pages, many=True, context={'request': request})
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, methods=['POST', 'DELETE'])
+    def subscribe(self, request, id):
+        author = User.objects.get(pk=id)
+        serializer = UserSubscribeSerializer(author, data=request.data, context={'request': request})
+        # serializer.is_valid(raise_exception=True)
+        if request.method == 'POST':
+            try:
+                Subscribe.objects.create(user=request.user, author=author)
+                return Response(serializer.initial_data, status=status.HTTP_201_CREATED)
+            except IntegrityError:
+                return Response(
+                    {'error': 'Этот пользователь уже добавлен в подписки'},
+                    status=status.HTTP_400_BAD_REQUEST)
+        elif request.method == 'DELETE':
+            subscription = get_object_or_404(Subscribe, user=request.user, author=author)
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
