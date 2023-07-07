@@ -114,12 +114,6 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
-class SubscribeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Subscribe
-        fields = '__all__'
-
-
 class RecipeMainSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     ingredients = IngredientInRecipeSerializer(many=True, source='recipe')

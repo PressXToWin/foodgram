@@ -6,14 +6,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (IngredientSerializer,
                              RecipeCreateSerializer, RecipeMainSerializer,
                              RecipeShortSerializer,
-                             SubscribeSerializer, TagSerializer, UserSubscribeSerializer, UserMainSerializer)
+                             TagSerializer, UserSubscribeSerializer)
 from recipes.filters import RecipeFilter, IngredientFilter
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Subscribe, Tag)
@@ -122,7 +122,6 @@ class ExtendedUserViewSet(UserViewSet):
             subscription = get_object_or_404(Subscribe, user=request.user, author=author)
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 
 class TagViewSet(viewsets.ModelViewSet):

@@ -9,7 +9,7 @@ from recipes.models import Ingredient
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        print(f'Loading ingredients data')
+        print('Loading ingredients data')
         for row in reader(
                 open('../data/ingredients.csv', encoding="utf8")):
             ingredient = Ingredient(
