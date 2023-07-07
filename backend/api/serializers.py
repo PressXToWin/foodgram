@@ -45,9 +45,13 @@ class UserViewSerializer(UserMainSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
-        if not self.context.get('request').user.is_authenticated or self.context.get('request').user == obj:
+        if not self.context.get('request').user.is_authenticated \
+                or self.context.get('request').user == obj:
             return False
-        subscribe = Subscribe.objects.filter(user=self.context.get('request').user, author=obj)
+        subscribe = Subscribe.objects.filter(
+            user=self.context.get('request').user,
+            author=obj
+        )
         return subscribe.exists()
 
     class Meta:
@@ -77,7 +81,6 @@ class UserSubscribeSerializer(UserViewSerializer):
             'recipes',
             'recipes_count'
         )
-        # fields = '__all__'
         model = User
 
     def get_recipes_count(self, obj):
@@ -88,6 +91,16 @@ class UserSubscribeSerializer(UserViewSerializer):
         recipes = obj.recipes.all()
         serializer = RecipeShortSerializer(recipes, many=True)
         return serializer.data
+
+    def validate(self, data):
+        if Subscribe.objects.filter(
+                user=data['user'],
+                author=data['author']
+        ).exists():
+            raise serializers.ValidationError(
+                'Этот пользователь уже добавлен в подписки'
+            )
+        return data
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -125,13 +138,19 @@ class RecipeMainSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         if not self.context.get('request').user.is_authenticated:
             return False
-        favorite = Favorite.objects.filter(user=self.context.get('request').user, recipe=obj)
+        favorite = Favorite.objects.filter(
+            user=self.context.get('request').user,
+            recipe=obj
+        )
         return favorite.exists()
 
     def get_is_in_shopping_cart(self, obj):
         if not self.context.get('request').user.is_authenticated:
             return False
-        cart = ShoppingCart.objects.filter(user=self.context.get('request').user, recipe=obj)
+        cart = ShoppingCart.objects.filter(
+            user=self.context.get('request').user,
+            recipe=obj
+        )
         return cart.exists()
 
     class Meta:
@@ -168,11 +187,17 @@ class RecipeCreateSerializer(RecipeMainSerializer):
             instance.tags.set(validated_data.pop('tags'))
         if 'ingredients' in validated_data:
             instance.ingredients.clear()
-            self.create_ingredients(validated_data.pop('ingredients'), instance)
+            self.create_ingredients(
+                validated_data.pop('ingredients'),
+                instance
+            )
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
-        return RecipeMainSerializer(instance, context={'request': self.context.get('request')}).data
+        return RecipeMainSerializer(
+            instance,
+            context={'request': self.context.get('request')}
+        ).data
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
