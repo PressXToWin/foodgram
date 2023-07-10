@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -79,15 +80,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def items_in_cart(self, user):
         ingredients = RecipeIngredient.objects.filter(
             recipe__in_cart__user=user
-        )
-        answer_dict = {}
+        ).values('ingredient__name', 'ingredient__measurement_unit'
+                 ).annotate(amount=Sum('amount'))
+        answer = {}
         for item in ingredients:
-            name = f'{item.ingredient.name}, '
-            name += f'{item.ingredient.measurement_unit}'
-            if name not in answer_dict:
-                answer_dict[name] = 0
-            answer_dict[name] += item.amount
-        return answer_dict
+            name = f'{item["ingredient__name"]}, '
+            name += f'{item["ingredient__measurement_unit"]}'
+            answer[name] = item['amount']
+        return answer
 
     @action(detail=False, methods=['GET'])
     def download_shopping_cart(self, request):
