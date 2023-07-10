@@ -101,9 +101,17 @@ class RecipeTag(models.Model):
         verbose_name='Тэг'
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'tag'],
+                name='unique_recipe_tag'
+            )
+        ]
+
 
 class RecipeIngredient(models.Model):
-    """Вспомогательная модель для связи рецепта ингредиентов"""
+    """Вспомогательная модель для связи рецепта и ингредиентов"""
     recipe = models.ForeignKey(
         Recipe,
         related_name='recipe',
@@ -120,6 +128,14 @@ class RecipeIngredient(models.Model):
         default=0,
         verbose_name='Количество'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_recipe_ingredient'
+            )
+        ]
 
 
 class Subscribe(models.Model):
