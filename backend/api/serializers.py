@@ -166,12 +166,16 @@ class RecipeCreateSerializer(RecipeMainSerializer):
     ingredients = IngredientInRecipeSerializer(many=True)
 
     def create_ingredients(self, ingredients, recipe):
+        ingredients_in_recipe = []
         for ingredient in ingredients:
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient=ingredient.get('id'),
-                amount=ingredient.get('amount')
+            ingredients_in_recipe.append(
+                RecipeIngredient(
+                    recipe=recipe,
+                    ingredient=ingredient.get('id'),
+                    amount=ingredient.get('amount')
+                )
             )
+        RecipeIngredient.objects.bulk_create(ingredients_in_recipe)
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
