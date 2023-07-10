@@ -40,42 +40,40 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = Recipe.objects.get(pk=pk)
         serializer = RecipeShortSerializer(recipe)
         if request.method == 'POST':
-            try:
+            if not Favorite.objects.filter(user=request.user, recipe=recipe).exists():
                 Favorite.objects.create(user=request.user, recipe=recipe)
-                return Response(serializer.data)
-            except IntegrityError:
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
                 return Response(
                     {'error': 'Рецепт уже добавлен в избранное'},
                     status=status.HTTP_400_BAD_REQUEST)
-        elif request.method == 'DELETE':
-            favorite = get_object_or_404(
-                Favorite,
-                user=request.user,
-                recipe=recipe
-            )
-            favorite.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        favorite = get_object_or_404(
+            Favorite,
+            user=request.user,
+            recipe=recipe
+        )
+        favorite.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['POST', 'DELETE'])
     def shopping_cart(self, request, pk):
         recipe = Recipe.objects.get(pk=pk)
         serializer = RecipeShortSerializer(recipe)
         if request.method == 'POST':
-            try:
+            if not ShoppingCart.objects.filter(user=request.user, recipe=recipe).exists():
                 ShoppingCart.objects.create(user=request.user, recipe=recipe)
-                return Response(serializer.data)
-            except IntegrityError:
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
                 return Response(
                     {'error': 'Рецепт уже добавлен в список покупок'},
                     status=status.HTTP_400_BAD_REQUEST)
-        elif request.method == 'DELETE':
-            cart = get_object_or_404(
-                ShoppingCart,
-                user=request.user,
-                recipe=recipe
-            )
-            cart.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        cart = get_object_or_404(
+            ShoppingCart,
+            user=request.user,
+            recipe=recipe
+        )
+        cart.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def items_in_cart(self, user):
         ingredients = RecipeIngredient.objects.filter(
@@ -129,24 +127,23 @@ class ExtendedUserViewSet(UserViewSet):
         )
         serializer.is_valid()
         if request.method == 'POST':
-            try:
+            if not Subscribe.objects.filter(user=request.user, author=author).exists():
                 Subscribe.objects.create(user=request.user, author=author)
                 return Response(
                     serializer.data,
                     status=status.HTTP_201_CREATED
                 )
-            except IntegrityError:
+            else:
                 return Response(
                     {'error': 'Этот пользователь уже добавлен в подписки'},
                     status=status.HTTP_400_BAD_REQUEST)
-        elif request.method == 'DELETE':
-            subscription = get_object_or_404(
-                Subscribe,
-                user=request.user,
-                author=author
-            )
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        subscription = get_object_or_404(
+            Subscribe,
+            user=request.user,
+            author=author
+        )
+        subscription.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(viewsets.ModelViewSet):
