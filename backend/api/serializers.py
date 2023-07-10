@@ -66,43 +66,6 @@ class UserViewSerializer(UserMainSerializer):
         model = User
 
 
-class UserSubscribeSerializer(UserViewSerializer):
-    recipes_count = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
-
-    class Meta:
-        fields = (
-            'id',
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipes',
-            'recipes_count'
-        )
-        model = User
-
-    def get_recipes_count(self, obj):
-        recipes_count = obj.recipes.count()
-        return recipes_count
-
-    def get_recipes(self, obj):
-        recipes = obj.recipes.all()
-        serializer = RecipeShortSerializer(recipes, many=True)
-        return serializer.data
-
-    def validate(self, data):
-        if Subscribe.objects.filter(
-                user=data['user'],
-                author=data['author']
-        ).exists():
-            raise serializers.ValidationError(
-                'Этот пользователь уже добавлен в подписки'
-            )
-        return data
-
-
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -177,6 +140,20 @@ class RecipeCreateSerializer(RecipeMainSerializer):
             )
         RecipeIngredient.objects.bulk_create(ingredients_in_recipe)
 
+    def validate_ingredients(self, ingredients):
+        if not ingredients:
+            raise serializers.ValidationError(
+                'В рецепте должны быть ингридиенты'
+            )
+        ids = []
+        for ingredient in ingredients:
+            ids.append(ingredient['id'])
+        if len(ids) > len(set(ids)):
+            raise serializers.ValidationError(
+                'Ингридиенты в рецепте должны быть уникальны'
+            )
+        return ingredients
+
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
@@ -210,3 +187,35 @@ class RecipeShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class UserSubscribeSerializer(UserViewSerializer):
+    recipes_count = serializers.SerializerMethodField()
+    recipes = RecipeShortSerializer(many=True)
+
+    class Meta:
+        fields = (
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count'
+        )
+        model = User
+
+    def get_recipes_count(self, obj):
+        recipes_count = obj.recipes.count()
+        return recipes_count
+
+    def validate(self, data):
+        if Subscribe.objects.filter(
+                user=data['user'],
+                author=data['author']
+        ).exists():
+            raise serializers.ValidationError(
+                'Этот пользователь уже добавлен в подписки'
+            )
+        return data
