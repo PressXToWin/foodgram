@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -35,45 +34,37 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    @action(detail=True, methods=['POST', 'DELETE'])
-    def favorite(self, request, pk):
+    def _create_or_delete_object(self, request, pk, model):
         recipe = Recipe.objects.get(pk=pk)
         serializer = RecipeShortSerializer(recipe)
         if request.method == 'POST':
-            if not Favorite.objects.filter(user=request.user, recipe=recipe).exists():
-                Favorite.objects.create(user=request.user, recipe=recipe)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            if not model.objects.filter(
+                    user=request.user, recipe=recipe).exists():
+                model.objects.create(user=request.user, recipe=recipe)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED
+                )
             else:
                 return Response(
-                    {'error': 'Рецепт уже добавлен в избранное'},
+                    {'error': 'Рецепт уже добавлен в '
+                              f'{model._meta.verbose_name}'},
                     status=status.HTTP_400_BAD_REQUEST)
-        favorite = get_object_or_404(
-            Favorite,
+        object_for_deletion = get_object_or_404(
+            model,
             user=request.user,
             recipe=recipe
         )
-        favorite.delete()
+        object_for_deletion.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['POST', 'DELETE'])
+    def favorite(self, request, pk):
+        return self._create_or_delete_object(request, pk, model=Favorite)
+
+    @action(detail=True, methods=['POST', 'DELETE'])
     def shopping_cart(self, request, pk):
-        recipe = Recipe.objects.get(pk=pk)
-        serializer = RecipeShortSerializer(recipe)
-        if request.method == 'POST':
-            if not ShoppingCart.objects.filter(user=request.user, recipe=recipe).exists():
-                ShoppingCart.objects.create(user=request.user, recipe=recipe)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response(
-                    {'error': 'Рецепт уже добавлен в список покупок'},
-                    status=status.HTTP_400_BAD_REQUEST)
-        cart = get_object_or_404(
-            ShoppingCart,
-            user=request.user,
-            recipe=recipe
-        )
-        cart.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return self._create_or_delete_object(request, pk, model=ShoppingCart)
 
     def items_in_cart(self, user):
         ingredients = RecipeIngredient.objects.filter(
@@ -121,9 +112,13 @@ class ExtendedUserViewSet(UserViewSet):
     def subscribe(self, request, id):
         author = User.objects.get(pk=id)
         if request.method == 'POST':
-            if not Subscribe.objects.filter(user=request.user, author=author).exists():
+            if not Subscribe.objects.filter(
+                    user=request.user, author=author).exists():
                 Subscribe.objects.create(user=request.user, author=author)
-                serializer = UserSubscribeSerializer(author, context={'request': request})
+                serializer = UserSubscribeSerializer(
+                    author,
+                    context={'request': request}
+                )
                 return Response(
                     serializer.data,
                     status=status.HTTP_201_CREATED
