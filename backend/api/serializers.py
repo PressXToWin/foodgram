@@ -209,13 +209,3 @@ class UserSubscribeSerializer(UserViewSerializer):
     def get_recipes_count(self, obj):
         recipes_count = obj.recipes.count()
         return recipes_count
-
-    def validate(self, data):
-        if Subscribe.objects.filter(
-                user=data['user'],
-                author=data['author']
-        ).exists():
-            raise serializers.ValidationError(
-                'Этот пользователь уже добавлен в подписки'
-            )
-        return data

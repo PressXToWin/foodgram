@@ -120,15 +120,10 @@ class ExtendedUserViewSet(UserViewSet):
     @action(detail=True, methods=['POST', 'DELETE'])
     def subscribe(self, request, id):
         author = User.objects.get(pk=id)
-        serializer = UserSubscribeSerializer(
-            author,
-            data=request.data,
-            context={'request': request}
-        )
-        serializer.is_valid()
         if request.method == 'POST':
             if not Subscribe.objects.filter(user=request.user, author=author).exists():
                 Subscribe.objects.create(user=request.user, author=author)
+                serializer = UserSubscribeSerializer(author, context={'request': request})
                 return Response(
                     serializer.data,
                     status=status.HTTP_201_CREATED
