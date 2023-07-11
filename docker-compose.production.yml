@@ -19,7 +19,7 @@ services:
       retries: 5
 
   backend:
-    build: ../backend/
+    image: pressxtowin7/foodgram_backend
     env_file: .env
     volumes:
       - foodgram_static:/static
@@ -29,9 +29,7 @@ services:
         condition: service_healthy
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: pressxtowin7/foodgram_frontend
     volumes:
       - foodgram_static:/static
     command: cp -r /app/build/. /static/
@@ -39,7 +37,7 @@ services:
   nginx:
     image: nginx:1.19.3
     ports:
-      - "80:80"
+      - "9000:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - foodgram_static:/usr/share/nginx/html/
