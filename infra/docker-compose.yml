@@ -1,6 +1,19 @@
 version: '3.3'
-services:
 
+
+
+services:
+  db:
+    image: postgres:13.10
+    env_file: .env
+    volumes:
+      - foodgram_pg_data:/var/lib/postgresql/data
+  backend:
+    build: ../backend/
+    env_file: .env
+    volumes:
+      - foodgram_static:/static
+      - foodgram_media:/media
   frontend:
     build:
       context: ../frontend
