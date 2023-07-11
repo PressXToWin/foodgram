@@ -9,4 +9,6 @@ RUN pip install -r requirements.txt --no-cache-dir
 
 COPY . .
 
+RUN chmod 777 /app/entrypoint.sh
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "foodgram.wsgi"]

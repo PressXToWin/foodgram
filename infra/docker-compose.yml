@@ -11,18 +11,30 @@ services:
     env_file: .env
     volumes:
       - foodgram_pg_data:/var/lib/postgresql/data
+    restart: on-failure
+    healthcheck:
+      test: pg_isready -U foodgram
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
   backend:
     build: ../backend/
     env_file: .env
     volumes:
       - foodgram_static:/static
       - foodgram_media:/media
+    depends_on:
+      db:
+        condition: service_healthy
+
   frontend:
     build:
       context: ../frontend
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
+
   nginx:
     image: nginx:1.19.3
     ports:
@@ -33,3 +45,5 @@ services:
       - ../docs/:/usr/share/nginx/html/api/docs/
       - foodgram_static:/static
       - foodgram_media:/media
+    depends_on:
+      - backend
