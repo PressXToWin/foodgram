@@ -1,6 +1,9 @@
 version: '3.3'
 
-
+volumes:
+  foodgram_pg_data:
+  foodgram_static:
+  foodgram_media:
 
 services:
   db:
