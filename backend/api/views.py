@@ -35,7 +35,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     def _create_or_delete_object(self, request, pk, model):
-        recipe = Recipe.objects.get(pk=pk)
+        recipe = get_object_or_404(Recipe, pk=pk)
         serializer = RecipeShortSerializer(recipe)
         if request.method == 'POST':
             if not model.objects.filter(
@@ -45,11 +45,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     serializer.data,
                     status=status.HTTP_201_CREATED
                 )
-            else:
-                return Response(
-                    {'error': 'Рецепт уже добавлен в '
-                              f'{model._meta.verbose_name}'},
-                    status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Рецепт уже добавлен в '
+                          f'{model._meta.verbose_name}'},
+                status=status.HTTP_400_BAD_REQUEST)
         object_for_deletion = get_object_or_404(
             model,
             user=request.user,
@@ -70,12 +69,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ingredients = RecipeIngredient.objects.filter(
             recipe__in_cart__user=user
         ).values('ingredient__name', 'ingredient__measurement_unit'
-                 ).annotate(amount=Sum('amount'))
+                 ).annotate(quantity=Sum('amount'))
         answer = {}
         for item in ingredients:
             name = f'{item["ingredient__name"]}, '
             name += f'{item["ingredient__measurement_unit"]}'
-            answer[name] = item['amount']
+            answer[name] = item['quantity']
         return answer
 
     @action(detail=False, methods=['GET'])
@@ -110,7 +109,7 @@ class ExtendedUserViewSet(UserViewSet):
 
     @action(detail=True, methods=['POST', 'DELETE'])
     def subscribe(self, request, id):
-        author = User.objects.get(pk=id)
+        author = get_object_or_404(User, pk=id)
         if request.method == 'POST':
             if not Subscribe.objects.filter(
                     user=request.user, author=author).exists():
@@ -123,10 +122,9 @@ class ExtendedUserViewSet(UserViewSet):
                     serializer.data,
                     status=status.HTTP_201_CREATED
                 )
-            else:
-                return Response(
-                    {'error': 'Этот пользователь уже добавлен в подписки'},
-                    status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Этот пользователь уже добавлен в подписки'},
+                status=status.HTTP_400_BAD_REQUEST)
         subscription = get_object_or_404(
             Subscribe,
             user=request.user,
