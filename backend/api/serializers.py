@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -64,6 +65,19 @@ class UserViewSerializer(UserMainSerializer):
             'is_subscribed'
         )
         model = User
+
+
+class CustomUserCreateSerializer(UserCreateSerializer, UserMainSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'password'
+        )
 
 
 class TagSerializer(serializers.ModelSerializer):
