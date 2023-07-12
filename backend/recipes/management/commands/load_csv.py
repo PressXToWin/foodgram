@@ -11,7 +11,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         print('Loading ingredients data')
         for row in reader(
-                open('../data/ingredients.csv', encoding="utf8")):
+                open('./data/ingredients.csv', encoding="utf8")):
             ingredient = Ingredient(
                 name=row[0],
                 measurement_unit=row[1]
