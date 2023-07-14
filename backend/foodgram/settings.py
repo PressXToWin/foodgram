@@ -124,5 +124,9 @@ DJOSER = {
         'user_create': 'api.serializers.CustomUserCreateSerializer',
         'current_user': 'api.serializers.UserViewSerializer',
     },
-    'LOGIN_FIELD': 'email'
+    'LOGIN_FIELD': 'email',
+    "PERMISSIONS": {
+        "user": ["djoser.permissions.CurrentUserOrAdminOrReadOnly"],
+        "user_list": ["rest_framework.permissions.IsAuthenticatedOrReadOnly"],
+    },
 }
