@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
+from api.pagination import LimitPageNumberPagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (IngredientSerializer, RecipeCreateSerializer,
                              RecipeMainSerializer, RecipeShortSerializer,
@@ -22,6 +23,7 @@ User = get_user_model()
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
+    pagination_class = LimitPageNumberPagination
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
@@ -94,6 +96,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class ExtendedUserViewSet(UserViewSet):
+    pagination_class = LimitPageNumberPagination
 
     @action(detail=False, methods=['GET'])
     def subscriptions(self, request):
