@@ -93,7 +93,8 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    id = serializers.PrimaryKeyRelatedField(
+        source='ingredient', queryset=Ingredient.objects.all())
     name = serializers.ReadOnlyField(
         source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
@@ -144,12 +145,12 @@ class RecipeCreateSerializer(RecipeMainSerializer):
 
     def create_ingredients(self, ingredients, recipe):
         ingredients_in_recipe = []
-        for ingredient in ingredients:
+        for item in ingredients:
             ingredients_in_recipe.append(
                 RecipeIngredient(
                     recipe=recipe,
-                    ingredient=ingredient.get('id'),
-                    amount=ingredient.get('amount')
+                    ingredient=item.get('ingredient'),
+                    amount=item.get('amount')
                 )
             )
         RecipeIngredient.objects.bulk_create(ingredients_in_recipe)
@@ -161,7 +162,7 @@ class RecipeCreateSerializer(RecipeMainSerializer):
             )
         ids = []
         for ingredient in ingredients:
-            ids.append(ingredient['id'])
+            ids.append(ingredient.get('ingredient'))
         if len(ids) > len(set(ids)):
             raise serializers.ValidationError(
                 'Ингридиенты в рецепте должны быть уникальны'
