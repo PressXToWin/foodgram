@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Subscribe, Tag)
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Subscribe, Tag)
 
 User = get_user_model()
 
@@ -222,3 +223,12 @@ class UserSubscribeSerializer(UserViewSerializer):
     def get_recipes_count(self, obj):
         recipes_count = obj.recipes.count()
         return recipes_count
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        limit = request.GET.get('recipes_limit')
+        recipes = obj.recipes.all()
+        if limit:
+            recipes = recipes[:int(limit)]
+        serializer = RecipeShortSerializer(recipes, many=True, read_only=True)
+        return serializer.data
