@@ -21,13 +21,10 @@ User = get_user_model()
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
-
-    def get_queryset(self, request):
-        recipes = Recipe.objects.all()
-
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
