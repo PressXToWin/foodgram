@@ -181,7 +181,7 @@ class RecipeCreateSerializer(RecipeMainSerializer):
             instance.tags.clear()
             instance.tags.set(validated_data.pop('tags'))
         if 'ingredients' in validated_data:
-            instance.ingredients.clear()
+            RecipeIngredient.objects.filter(recipe=instance).delete()
             self.create_ingredients(
                 validated_data.pop('ingredients'),
                 instance
