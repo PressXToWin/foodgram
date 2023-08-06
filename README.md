@@ -81,15 +81,15 @@ DEBUG=True
 ALLOWED_HOSTS=127.0.0.1 yourdomain.com
 CSRF_TRUSTED_ORIGINS=http://127.0.0.1 https://yourdomain.com
 ```
- - Скопировать на сервер файлы docker-compose.yml, nginx.conf из папки infra (команды выполнять находясь в папке infra):
+ - Скопируйте на сервер файлы docker-compose.yml, nginx.conf из папки infra (команды выполнять находясь в папке infra):
 ```
 scp docker-compose.yml nginx.conf username@IP:/home/username/
 ```
- - Создать и запустить контейнеры Docker, выполнить команду на сервере:
+ - Создайте и запустите контейнеры Docker, выполнив команду на сервере:
 ```
 docker compose up -d
 ```
- - После успешной сборки выполнить миграции, собрать статику, наполнить базу, создать суперпользователя:
+ - После успешной сборки нужно наполнить базу, создать суперпользователя:
 ```
 docker compose exec backend python manage.py load_csv
 docker compose exec backend python manage.py createsuperuser
